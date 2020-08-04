@@ -1,26 +1,39 @@
-logioweb:
-  image: 'quay.io/blacklabelops/logio:latest'
-  # container_name: logio
-  environment:
-    - 'LOGIO_ADMIN_USER='
-    - 'LOGIO_ADMIN_PASSWORD='
-    - LOGIO_CERTIFICATE_DNAME=
-  ports:
-    - '28778:28778'
-  volumes:
-    - '/opt/server'
-harvester:
-  image: 'quay.io/blacklabelops/logio:latest'
-  environment:
-    - 'DELAYED_START=10'
-    - 'LOGIO_HARVESTER_NODENAME=DockerLogs'
-    - 'LOGIO_HARVESTER_STREAMNAME=UnifiedLogs'
-    - 'LOGIO_HARVESTER_LOGFILES='
-    - 'LOGS_DIRECTORIES=/var/lib/docker'
-    - 'LOG_FILE_PATTERN=*.log'
-  volumes:
-    - '/var/lib/docker:/var/lib/docker'
-  links:
-    - logioweb:logio
-  user: root
-  command: harvester
+version: '2.4'
+services:
+  logioweb:
+    image: 'logio_test:latest'
+  #  container_name: logio
+    environment:
+      - 'LOGIO_ADMIN_USER=admin'
+      - 'LOGIO_ADMIN_PASSWORD=admin'
+      - 'LOGIO_ADMIN_REALM=abc123xyz'
+      - 'LOGIO_SERVER_CONFIG_PATH='
+      - 'LOGIO_TCP_MASTER_HOST="0.0.0.0"'
+      - 'LOGIO_TCP_MASTER_PORT=6689'
+      - 'SERVER_DEBUG_MODE="true"'
+    ports:
+      -  6688:6688
+      -  6689:6689
+    volumes:
+      - '/opt/server'
+  fileinput:
+    image: 'logio_test:latest'
+    environment:
+      - 'DELAYED_START=3'
+      - 'LOGIO_FILEINPUT1_SOURCE=server1'
+      - 'LOGIO_FILEINPUT1_STREAM=system-logs'
+      - 'LOGIO_FILEINPUT1_PATH="/var/log/**/*.log"'
+      - 'LOGIO_FILEINPUT1_DEPTH=5'
+      - 'LOGIO_FILEINPUT2_SOURCE=petal'
+      - 'LOGIO_FILEINPUT2_STREAM=test-logs'
+      - 'LOGIO_FILEINPUT2_PATH="/root/log_test/*.log"'
+      - 'LOGIO_FILEINPUT2_DEPTH=5'
+    volumes:
+      - '/var/lib/docker:/var/lib/docker'
+      - '/Users/jingyusu/Desktop/logio_test:/root/log_test'
+    links:
+      - logioweb:logio
+    depends_on:
+      - logioweb
+    user: root
+    command: fileinput
