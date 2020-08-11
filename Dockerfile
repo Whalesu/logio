@@ -1,5 +1,4 @@
-FROM blacklabelops/centos
-MAINTAINER Steffen Bleul <sbl@blacklabelops.com>
+FROM centos:7
 
 # Propert permissions
 ENV CONTAINER_USER logio
